@@ -7,11 +7,9 @@ require_relative 'highlighter'
 require_relative 'day_formatter_gregorio'
 require_relative 'day_formatter_julius'
 require_relative 'normal_calendar'
-require_relative 'normal_renderer_gregorio'
-require_relative 'normal_renderer_julius'
 require_relative 'transposed_calendar'
-require_relative 'transposed_renderer_gregorio'
-require_relative 'transposed_renderer_julius'
+require_relative 'normal_canvas_gregorio'
+require_relative 'transposed_canvas_gregorio'
 
 class CLI
   USAGE = <<-USAGE
@@ -26,6 +24,7 @@ class CLI
 
   Options:
   USAGE
+
   EXIT_CODE_OK = 0
   EXIT_CODE_PARSE_ERROR = 1
   EXIT_CODE_VALIDATION_ERROR = 2
@@ -39,7 +38,8 @@ class CLI
       year: Date.today.year,
       h: false,
       j: false,
-      N: false
+      N: false,
+      Three: false
     }
   end
 
@@ -64,7 +64,9 @@ class CLI
       parser.on('-j', 'Display Julian days (days one-based, numbered from January 1)') { |v| @params[:j] = v }
       parser.on('-N', 'Display ncal mode') { |v| @params[:N] = v }
 
-      # TODO: 複数月の表示に関連する機能は未実装(-A, -B, -3)
+      parser.on('-A MONTH', Integer, 'Display the number of months after the current month') { |v| @params[:A] = v }
+      parser.on('-B MONTH', Integer, 'Display the number of months before the current month') { |v| @params[:B] = v }
+      parser.on('-3', 'Display the previous, current and next month surrounding today') { |v| @params[:Three] = v }
     end
   end
 
@@ -94,29 +96,71 @@ class CLI
       return false
     end
 
-    # TODO: -A, -B, が設定されている場合は正の整数であること。-3 は -A または -B と共存できないこと
+    if @params[:Three]
+      unless @params[:A].nil?
+        @err_stream.puts '-3 together with -A is not supported'
+        return false
+      end
+
+      unless @params[:B].nil?
+        @err_stream.puts '-3 together with -B is not supported'
+        return false
+      end
+    end
+
+    unless @params[:A].nil? || @params[:A].positive?
+      @err_stream.puts 'Argument to -A must be positive'
+      return false
+    end
+
+    unless @params[:B].nil? || @params[:B].positive?
+      @err_stream.puts 'Argument to -B must be positive'
+      return false
+    end
+
     true
   end
 
   def execute
-    @out_stream.puts renderer.render
+    @out_stream.puts canvas(calendars).draw
 
     EXIT_CODE_OK
   end
 
-  def renderer
+  def year_month_pairs
+    n_prev = @params[:Three] ? 1 : @params[:B] || 0
+    n_next = @params[:Three] ? 1 : @params[:A] || 0
+
+    base_date = Date.new(@params[:year], @params[:month])
+    start_date = base_date.prev_month(n_prev)
+    last_date = base_date.next_month(n_next)
+
+    (start_date..last_date).map { |date| [date.year, date.month] }.uniq
+  end
+
+  def use_calendar_class
+    @params[:N] ? TransposedCalendar : NormalCalendar
+  end
+
+  def calendars
+    year_month_pairs.map do |year, month|
+      use_calendar_class.new(year, month)
+    end.to_a
+  end
+
+  def canvas(calendars)
     transposed = @params[:N]
     use_julius = @params[:j]
 
     case [transposed, use_julius]
     in [true, true]
-      TransposedRendererJulius.new(calendar, formatter)
+      TransposedCanvasJulius.new(calendars, formatter)
     in [true, false]
-      TransposedRendererGregorio.new(calendar, formatter)
+      TransposedCanvasGregorio.new(calendars, formatter)
     in [false, true]
-      NormalRendererJulius.new(calendar, formatter)
+      NormalCanvasJulius.new(calendars, formatter)
     else
-      NormalRendererGregorio.new(calendar, formatter)
+      NormalCanvasGregorio.new(calendars, formatter)
     end
   end
 
