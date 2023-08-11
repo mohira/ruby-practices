@@ -13,9 +13,7 @@ require_relative 'transposed_canvas_gregorio'
 
 class CLI
   USAGE = <<-USAGE
-  Displays a one-month calendar. This tool is like the `cal` command but with some differences:
-    1. Only one month can be displayed at a time; multiple months' display is not supported.
-    2. Output text is in English only.
+  Displays a calendar like the `cal` command.
 
   Examples
     ./cal.rb                         Display the current month's calendar

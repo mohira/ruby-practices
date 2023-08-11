@@ -1,15 +1,12 @@
 # README
-`cal`コマンドの模倣です。
 
-ただし、単月表示のみであり、複数月の表示(e.g. `cal -3`)には対応していません。
+`cal`コマンドの模倣です。
 
 ## 使い方
 
 ```
 $ ./cal.rb --help
-  Displays a one-month calendar. This tool is like the `cal` command but with some differences:
-    1. Only one month can be displayed at a time; multiple months' display is not supported.
-    2. Output text is in English only.
+  Displays a calendar like the `cal` command.
 
   Examples
     ./cal.rb                         Display the current month's calendar
@@ -22,13 +19,16 @@ $ ./cal.rb --help
     -h                               Turns off highlighting of today
     -j                               Display Julian days (days one-based, numbered from January 1)
     -N                               Display ncal mode
+    -A MONTH                         Display the number of months after the current month
+    -B MONTH                         Display the number of months before the current month
+    -3                               Display the previous, current and next month surrounding today
 ```
 
-
 ## サンプル
+
 動作を確認している環境は次のとおりです。
 
-```sh
+```
 $ sw_vers
 ProductName:		macOS
 ProductVersion:		13.5
@@ -46,7 +46,7 @@ en_US.UTF-8
 
 #### 引数を指定しない場合は、今月・今年のカレンダーを表示する
 
-```sh
+```
 $ cal
     August 2023
 Su Mo Tu We Th Fr Sa
@@ -69,7 +69,7 @@ Su Mo Tu We Th Fr Sa
 
 #### `-m`で月を、`-y`で年を指定できる
 
-```sh
+```
 $ cal -m 11
    November 2023
 Su Mo Tu We Th Fr Sa
@@ -90,7 +90,7 @@ Su Mo Tu We Th Fr Sa
 
 ```
 
-```sh
+```
 $ cal -m 11 2020
    November 2020
 Su Mo Tu We Th Fr Sa
@@ -115,7 +115,7 @@ Su Mo Tu We Th Fr Sa
 
 #### `-N`: 月曜始まりにした上で転置で表示する(`ncal`モード)
 
-```sh
+```
 $ cal -N
     August 2023
 Mo     7 14 21 28
@@ -138,8 +138,8 @@ Su  6 13 20 27
 
 #### `-j`: ユリウス暦で表示する
 
-```sh
-$ cal -j -m 8 2023
+```
+$ cal -j -m 8 -y 2023
         August 2023
  Su  Mo  Tu  We  Th  Fr  Sa
         213 214 215 216 217
@@ -159,10 +159,93 @@ $ ./cal.rb -j -m 8 -y 2023
 
 ```
 
+#### `-A MONTH`: 指定した年月の後の月も表示する
+
+```
+$ ./cal.rb -A 3 -m 1 -y 2015
+    January 2023         February 2023           March 2023       
+Su Mo Tu We Th Fr Sa  Su Mo Tu We Th Fr Sa  Su Mo Tu We Th Fr Sa  
+ 1  2  3  4  5  6  7            1  2  3  4            1  2  3  4  
+ 8  9 10 11 12 13 14   5  6  7  8  9 10 11   5  6  7  8  9 10 11  
+15 16 17 18 19 20 21  12 13 14 15 16 17 18  12 13 14 15 16 17 18  
+22 23 24 25 26 27 28  19 20 21 22 23 24 25  19 20 21 22 23 24 25  
+29 30 31              26 27 28              26 27 28 29 30 31     
+                                                                  
+
+     April 2023       
+Su Mo Tu We Th Fr Sa  
+                   1  
+ 2  3  4  5  6  7  8  
+ 9 10 11 12 13 14 15  
+16 17 18 19 20 21 22  
+23 24 25 26 27 28 29  
+30                    
+
+```
+
+#### `-B MONTH`: 指定した年月の前の月も表示する
+
+```
+$ ./cal.rb -B 3 -m 1 -y 2015
+    October 2022         November 2022         December 2022      
+Su Mo Tu We Th Fr Sa  Su Mo Tu We Th Fr Sa  Su Mo Tu We Th Fr Sa  
+                   1         1  2  3  4  5               1  2  3  
+ 2  3  4  5  6  7  8   6  7  8  9 10 11 12   4  5  6  7  8  9 10  
+ 9 10 11 12 13 14 15  13 14 15 16 17 18 19  11 12 13 14 15 16 17  
+16 17 18 19 20 21 22  20 21 22 23 24 25 26  18 19 20 21 22 23 24  
+23 24 25 26 27 28 29  27 28 29 30           25 26 27 28 29 30 31  
+30 31                                                             
+
+    January 2023      
+Su Mo Tu We Th Fr Sa  
+ 1  2  3  4  5  6  7  
+ 8  9 10 11 12 13 14  
+15 16 17 18 19 20 21  
+22 23 24 25 26 27 28  
+29 30 31              
+                      
+```
+
+#### `-A`と`-B`を組み合わせることができる
+
+```
+$  ./cal.rb -A 2 -B 3 -m 1 2015
+    October 2022         November 2022         December 2022      
+Su Mo Tu We Th Fr Sa  Su Mo Tu We Th Fr Sa  Su Mo Tu We Th Fr Sa  
+                   1         1  2  3  4  5               1  2  3  
+ 2  3  4  5  6  7  8   6  7  8  9 10 11 12   4  5  6  7  8  9 10  
+ 9 10 11 12 13 14 15  13 14 15 16 17 18 19  11 12 13 14 15 16 17  
+16 17 18 19 20 21 22  20 21 22 23 24 25 26  18 19 20 21 22 23 24  
+23 24 25 26 27 28 29  27 28 29 30           25 26 27 28 29 30 31  
+30 31                                                             
+
+    January 2023         February 2023           March 2023       
+Su Mo Tu We Th Fr Sa  Su Mo Tu We Th Fr Sa  Su Mo Tu We Th Fr Sa  
+ 1  2  3  4  5  6  7            1  2  3  4            1  2  3  4  
+ 8  9 10 11 12 13 14   5  6  7  8  9 10 11   5  6  7  8  9 10 11  
+15 16 17 18 19 20 21  12 13 14 15 16 17 18  12 13 14 15 16 17 18  
+22 23 24 25 26 27 28  19 20 21 22 23 24 25  19 20 21 22 23 24 25  
+29 30 31              26 27 28              26 27 28 29 30 31     
+                                                                  
+
+```
+
+#### `-3`: 指定した年月の前後1ヶ月も追加で表示する
+
+```
+$ ./cal.rb -3 -m 1 2015
+   December 2022          January 2023         February 2023
+Su Mo Tu We Th Fr Sa  Su Mo Tu We Th Fr Sa  Su Mo Tu We Th Fr Sa
+             1  2  3   1  2  3  4  5  6  7            1  2  3  4
+ 4  5  6  7  8  9 10   8  9 10 11 12 13 14   5  6  7  8  9 10 11
+11 12 13 14 15 16 17  15 16 17 18 19 20 21  12 13 14 15 16 17 18
+18 19 20 21 22 23 24  22 23 24 25 26 27 28  19 20 21 22 23 24 25
+25 26 27 28 29 30 31  29 30 31              26 27 28
+```
+
 #### 今日の日付の部分の色が反転する(背景色と文字色が入れ替わる)
 
 <img alt="highlight_current_date.png" height="480" src="img/highlight_current_date.png"/>
-
 
 #### `-h`: ハイライトをOFFにできる
 
@@ -170,17 +253,15 @@ $ ./cal.rb -j -m 8 -y 2023
 
 #### 誤ったoptionを設定した場合にはエラーメッセージを表示する
 
-```sh
+```
 $ ./cal.rb -x
 invalid option: -x
-  Displays a one-month calendar. This tool is like the `cal` command but with some differences:
-    1. Only one month can be displayed at a time; multiple months' display is not supported.
-    2. Output text is in English only.
+  Displays a calendar like the `cal` command.
 
   Examples
-    mycal                            Display the current month's calendar
-    mycal -m 8                       Display the calendar for current year
-    mycal -m 8 -y 2024               Display the calendar for August 2024
+    ./cal.rb                         Display the current month's calendar
+    ./cal.rb -m 8                    Display the calendar for current year
+    ./cal.rb -m 8 -y 2024            Display the calendar for August 2024
 
   Options:
     -m, --month MONTH                Display the specified month
@@ -188,9 +269,12 @@ invalid option: -x
     -h                               Turns off highlighting of today
     -j                               Display Julian days (days one-based, numbered from January 1)
     -N                               Display ncal mode
+    -A MONTH                         Display the number of months after the current month
+    -B MONTH                         Display the number of months before the current month
+    -3                               Display the previous, current and next month surrounding today
 ```
 
-```sh
+```
 $ ./cal.rb -m 0
 0 is not in range (1..12)
 
@@ -204,4 +288,23 @@ $ ./cal.rb -y 2101
 2101 is not in range (1970..2100)
 ```
 
+```
+$  ./cal.rb -A 0
+Argument to -A must be positive
+
+$  ./cal.rb -A -1
+Argument to -A must be positive
+
+$  ./cal.rb -B 0
+Argument to -B must be positive
+
+$  ./cal.rb -B -1
+Argument to -B must be positive
+
+$  ./cal.rb -3 -A 1
+-3 together with -A is not supported
+
+$  ./cal.rb -3 -B 1
+-3 together with -B is not supported
+```
 
