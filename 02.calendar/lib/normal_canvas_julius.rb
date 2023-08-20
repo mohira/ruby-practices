@@ -20,11 +20,13 @@ class NormalCanvasJulius
 
   def header(calendars)
     # 表示パターンに応じて年月のヘッダーを作る
-    header_str = @whitespace * 29 * calendars.size
+    padding_size = 29
+    header_str = @whitespace * padding_size * calendars.size
 
     # 空文字列をひたすら更新していく
-    header_str = substitute_header(header_str, calendars[0], 10) unless calendars[0].nil?
-    header_str = substitute_header(header_str, calendars[1], 10 + 29) unless calendars[1].nil?
+    middle_char_index = 10
+    header_str = substitute_header(header_str, calendars[0], middle_char_index) unless calendars[0].nil?
+    header_str = substitute_header(header_str, calendars[1], middle_char_index + padding_size) unless calendars[1].nil?
 
     header_str
   end

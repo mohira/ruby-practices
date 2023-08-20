@@ -19,13 +19,15 @@ class TransposedCanvasGregorio
 
   def header(calendars)
     # 表示パターンに応じて年月のヘッダーを作る
-    header_str = @whitespace * (4 + 18 * calendars.size)
+    start_index = 4
+    padding_size = 18
+    header_str = @whitespace * (start_index + padding_size * calendars.size)
 
     # 空文字列をひたすら更新していく
-    header_str = substitute_header(header_str, calendars[0], 4)
-    header_str = substitute_header(header_str, calendars[1], 4 + 18) unless calendars[1].nil?
-    header_str = substitute_header(header_str, calendars[2], 4 + 18 + 18) unless calendars[2].nil?
-    header_str = substitute_header(header_str, calendars[3], 4 + 18 + 18 + 18) unless calendars[3].nil?
+    header_str = substitute_header(header_str, calendars[0], start_index)
+    header_str = substitute_header(header_str, calendars[1], start_index + padding_size) unless calendars[1].nil?
+    header_str = substitute_header(header_str, calendars[2], start_index + padding_size + padding_size) unless calendars[2].nil?
+    header_str = substitute_header(header_str, calendars[3], start_index + padding_size + padding_size + padding_size) unless calendars[3].nil?
 
     header_str
   end
