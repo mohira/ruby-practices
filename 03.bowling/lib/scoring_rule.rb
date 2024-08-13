@@ -56,23 +56,3 @@ class FrameBonusScoringRule
     @flatten_rolls[@scanned_roll_index + 1]
   end
 end
-
-class CurrentFrameScoringRule
-  def initialize(frames)
-    @frames = frames
-  end
-
-  def score
-    @frames.each.sum { |frame| frame_score(frame) }
-  end
-
-  def frame_score(frame)
-    if frame.spare?
-      10 + frame.first_roll.knocked_down_pins
-    elsif frame.strike?
-      30
-    else
-      frame.total_knocked_down_pins
-    end
-  end
-end

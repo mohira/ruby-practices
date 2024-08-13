@@ -10,9 +10,3 @@ class TraditionalFrameScoringSystem
     plain_score + bonus_score
   end
 end
-
-class CurrentFrameScoringSystem
-  def self.score(frames)
-    CurrentFrameScoringRule.new(frames).score
-  end
-end
