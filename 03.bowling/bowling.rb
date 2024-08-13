@@ -11,9 +11,7 @@ def main
   frames_builder = FramesBuilder.new(game_history)
   frames = frames_builder.build
 
-  score = TraditionalFrameScoringSystem.score(frames)
-
-  puts score
+  puts TraditionalFrameScoringSystem.score(frames)
 end
 
 main
