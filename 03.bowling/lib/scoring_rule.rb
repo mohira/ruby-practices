@@ -30,6 +30,8 @@ class FrameBonusScoringRule
     end
   end
 
+  private
+
   def frame_bonus(frame)
     if frame.spare?
       spare_bonus

@@ -2,6 +2,7 @@
 
 require_relative 'bowling_constants'
 require_relative 'frame'
+
 class FramesBuilder
   include BowlingConstants
 
@@ -15,6 +16,8 @@ class FramesBuilder
 
     @frames
   end
+
+  private
 
   def last_frame?
     @frames.size == (NUMBER_OF_ALL_FRAMES - 1)
