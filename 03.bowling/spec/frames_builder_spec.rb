@@ -13,9 +13,9 @@ RSpec.describe FramesBuilder do
   subject { frames_builder.build }
 
   let(:frames_builder) { FramesBuilder.new(roll_history_parser) }
-  let(:roll_history_parser) { GameHistory.new(raw_roll_log) }
+  let(:roll_history_parser) { GameHistory.new(rolls) }
 
-  where(:raw_roll_log, :expected) do
+  where(:rolls, :expected) do
     [
       [
         '6,3,9,0,0,3,8,2,7,3,X,9,1,8,0,X,6,4,5',

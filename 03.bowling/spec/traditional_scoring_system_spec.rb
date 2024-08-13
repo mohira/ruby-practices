@@ -11,11 +11,11 @@ RSpec.describe TraditionalFrameScoringSystem do
 
   let(:frames) { frames_builder.build }
   let(:frames_builder) { FramesBuilder.new(game_history) }
-  let(:game_history) { GameHistory.new(raw_roll_log) }
+  let(:game_history) { GameHistory.new(rolls) }
 
   describe '#score' do
     context 'when some game' do
-      where(:expected, :raw_roll_log) do
+      where(:expected, :rolls) do
         [
           [139, '6,3,9,0,0,3,8,2,7,3,X,9,1,8,0,X,6,4,5'],
           [164, '6,3,9,0,0,3,8,2,7,3,X,9,1,8,0,X,X,X,X'],
@@ -31,7 +31,7 @@ RSpec.describe TraditionalFrameScoringSystem do
     end
 
     context 'when spare of strike in 10th frame' do
-      where(:expected, :raw_roll_log, :case) do
+      where(:expected, :rolls, :case) do
         [
           [15, '0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,4,5', 'spare'],
           [17, '0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,X,3,4', 'strike'],
@@ -48,7 +48,7 @@ RSpec.describe TraditionalFrameScoringSystem do
     end
 
     context 'when characteristic game' do
-      where(:expected, :raw_roll_log, :case) do
+      where(:expected, :rolls, :case) do
         [
           [0, '0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0', 'all frame gutter'],
           [50, 'X,0,0,X,0,0,X,0,0,X,0,0,X,0,0', 'bonus of all strikes is 0'],

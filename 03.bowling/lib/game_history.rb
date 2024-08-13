@@ -8,10 +8,10 @@ class GameHistory
 
   attr_reader :tokens
 
-  def initialize(raw_roll_log)
-    @raw_roll_log = raw_roll_log
+  def initialize(rolls)
+    @rolls = rolls
 
-    @tokens = raw_roll_log.split(',').map { |s| Roll.new(s) }
+    @tokens = rolls.split(',').map { |s| Roll.new(s) }
   end
 
   def rest_tokens?
