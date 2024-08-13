@@ -2,8 +2,10 @@
 
 source 'https://rubygems.org'
 
-gem 'rspec'
-gem 'rspec-parameterized'
+group :test do
+  gem 'rspec'
+  gem 'rspec-parameterized'
+end
 
 # For plain Ruby scripts
 group :development do
