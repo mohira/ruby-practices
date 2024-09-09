@@ -51,9 +51,9 @@ def main
 
   entries_raw = list_entries(dir)
 
-  exit 0 if entries_raw.empty?
-
   entries = sort_asc(filter_entries(entries_raw))
+
+  exit if entries.empty?
 
   entries_grid = format_entries_to_grid(entries)
 
