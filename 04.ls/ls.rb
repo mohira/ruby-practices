@@ -42,10 +42,7 @@ end
 def main
   dir = ARGV[0] || '.'
 
-  unless File.exist?(dir)
-    warn "ls.rb: No such file or directory: #{dir}"
-    exit 1
-  end
+  abort "ls.rb: No such file or directory: #{dir}" unless File.exist?(dir)
 
   if File.file?(dir)
     puts dir
