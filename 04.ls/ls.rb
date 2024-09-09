@@ -1,18 +1,6 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-def list_entries(dir)
-  Dir.entries(dir)
-end
-
-def filter_entries(entries)
-  entries.reject { |e| e.start_with?('.') }
-end
-
-def sort_asc(entries)
-  entries.sort
-end
-
 def format_entries_to_grid(entries)
   # lsでの出力形態を表現した2次元配列を作る
 
@@ -49,9 +37,9 @@ def main
     exit
   end
 
-  entries_raw = list_entries(dir)
-
-  entries = sort_asc(filter_entries(entries_raw))
+  entries = Dir.entries(dir)
+               .reject { |e| e.start_with?('.') }
+               .sort
 
   exit if entries.empty?
 
