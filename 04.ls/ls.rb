@@ -46,7 +46,7 @@ def main
 
   if File.file?(dir)
     puts dir
-    exit 0
+    exit
   end
 
   entries_raw = list_entries(dir)
