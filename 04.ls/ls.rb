@@ -1,10 +1,21 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
+require 'optparse'
+
 MAX_NUMBER_OF_DISPLAY_COLUMNS = 3
 
-def format_entries_to_grid(entries)
-  # lsでの出力形態を表現した2次元配列を作る
+def fetch_entries_as_preferred(path, params)
+  return [path] if File.file?(path)
+
+  Dir.entries(path)
+     .sort
+     .then { |entries| params[:a] ? entries : entries.reject { |entry| entry.start_with?('.') } }
+end
+
+def transform_ls_grid(entries)
+  return [[]] if entries.empty?
+
   number_of_display_rows = (entries.count + MAX_NUMBER_OF_DISPLAY_COLUMNS - 1) / MAX_NUMBER_OF_DISPLAY_COLUMNS
 
   # 矩形の表示枠を用意してnilは切り詰める
@@ -15,6 +26,8 @@ def format_entries_to_grid(entries)
 end
 
 def stringify_entries_grid(entries_grid)
+  return '' if entries_grid == [[]]
+
   # 各表示列の幅は固定値とする
   columns_width = 1 + entries_grid.flatten.max_by(&:length).length
 
@@ -24,24 +37,26 @@ def stringify_entries_grid(entries_grid)
 end
 
 def main
-  dir = ARGV[0] || '.'
+  params = {
+    a: false
+  }
 
-  abort "ls.rb: No such file or directory: #{dir}" unless File.exist?(dir)
-
-  if File.file?(dir)
-    puts dir
-    exit
+  parser = OptionParser.new do |opt|
+    opt.on('-a', 'Include directory entries whose names begin with a dot (`.`)') { params[:a] = true }
   end
 
-  entries = Dir.entries(dir)
-               .reject { |e| e.start_with?('.') }
-               .sort
+  parser.parse!(ARGV)
 
-  exit if entries.empty?
+  path = ARGV[0] || '.'
 
-  entries_grid = format_entries_to_grid(entries)
+  abort "ls.rb: No such file or directory: #{path}" unless File.exist?(path)
 
-  puts stringify_entries_grid(entries_grid)
+  entries = fetch_entries_as_preferred(path, params)
+  entries_grid = transform_ls_grid(entries)
+
+  ls_result = stringify_entries_grid(entries_grid)
+
+  puts ls_result unless ls_result.empty?
 end
 
 main
