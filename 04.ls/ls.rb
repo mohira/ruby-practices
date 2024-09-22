@@ -5,15 +5,15 @@ require 'optparse'
 
 MAX_NUMBER_OF_DISPLAY_COLUMNS = 3
 
-def fetch_entries_as_preferred(path, params)
+def fetch_entries(path, all)
   return [path] if File.file?(path)
 
   Dir.entries(path)
      .sort
-     .then { |entries| params[:a] ? entries : entries.reject { |entry| entry.start_with?('.') } }
+     .then { |entries| all ? entries : entries.reject { |entry| entry.start_with?('.') } }
 end
 
-def transform_ls_grid(entries)
+def to_grid(entries)
   return [[]] if entries.empty?
 
   number_of_display_rows = (entries.count + MAX_NUMBER_OF_DISPLAY_COLUMNS - 1) / MAX_NUMBER_OF_DISPLAY_COLUMNS
@@ -38,11 +38,11 @@ end
 
 def main
   params = {
-    a: false
+    all: false
   }
 
   parser = OptionParser.new do |opt|
-    opt.on('-a', 'Include directory entries whose names begin with a dot (`.`)') { params[:a] = true }
+    opt.on('-a', 'Include directory entries whose names begin with a dot (`.`)') { params[:all] = true }
   end
 
   parser.parse!(ARGV)
@@ -51,8 +51,8 @@ def main
 
   abort "ls.rb: No such file or directory: #{path}" unless File.exist?(path)
 
-  entries = fetch_entries_as_preferred(path, params)
-  entries_grid = transform_ls_grid(entries)
+  entries = fetch_entries(path, params[:all])
+  entries_grid = to_grid(entries)
 
   ls_result = stringify_entries_grid(entries_grid)
 
