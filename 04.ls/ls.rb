@@ -5,12 +5,13 @@ require 'optparse'
 
 MAX_NUMBER_OF_DISPLAY_COLUMNS = 3
 
-def fetch_entries(path, all)
+def fetch_entries(path, all, reverse)
   return [path] if File.file?(path)
 
   Dir.entries(path)
      .sort
      .then { |entries| all ? entries : entries.reject { |entry| entry.start_with?('.') } }
+     .then { |entries| reverse ? entries.reverse : entries }
 end
 
 def to_grid(entries)
@@ -38,11 +39,13 @@ end
 
 def main
   params = {
-    all: false
+    all: false,
+    reverse: false
   }
 
   parser = OptionParser.new do |opt|
     opt.on('-a', 'Include directory entries whose names begin with a dot (`.`)') { params[:all] = true }
+    opt.on('-r', 'Reverse the order of the sort') { params[:reverse] = true }
   end
 
   parser.parse!(ARGV)
@@ -51,7 +54,7 @@ def main
 
   abort "ls.rb: No such file or directory: #{path}" unless File.exist?(path)
 
-  entries = fetch_entries(path, params[:all])
+  entries = fetch_entries(path, params[:all], params[:reverse])
   entries_grid = to_grid(entries)
 
   ls_result = stringify_entries_grid(entries_grid)
