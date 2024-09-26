@@ -1,9 +1,29 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
+require 'etc'
+require 'open3'
 require 'optparse'
 
 MAX_NUMBER_OF_DISPLAY_COLUMNS = 3
+
+def parse_options(argv)
+  params = {
+    all: false,
+    reverse: false,
+    long_format: false
+  }
+
+  parser = OptionParser.new do |opt|
+    opt.on('-a', 'Include directory entries whose names begin with a dot (`.`)') { params[:all] = true }
+    opt.on('-r', 'Reverse the order of the sort') { params[:reverse] = true }
+    opt.on('-l', 'List files in the long format') { params[:long_format] = true }
+  end
+
+  parser.parse!(argv)
+
+  params
+end
 
 def fetch_entries(path, all, reverse)
   return [path] if File.file?(path)
@@ -26,7 +46,7 @@ def to_grid(entries)
       .map { |row| row.reject(&:nil?) }
 end
 
-def stringify_entries_grid(entries_grid)
+def format_entries_grid(entries_grid)
   return '' if entries_grid == [[]]
 
   # 各表示列の幅は固定値とする
@@ -37,29 +57,143 @@ def stringify_entries_grid(entries_grid)
   end.join("\n")
 end
 
-def main
-  params = {
-    all: false,
-    reverse: false
+def build_default_format_output(entries)
+  entries_grid = to_grid(entries)
+
+  format_entries_grid(entries_grid)
+end
+
+def get_filetype_and_permissions(full_path)
+  stat = File.lstat(full_path)
+
+  filetypes = {
+    'file' => '-',
+    'directory' => 'd',
+    'characterSpecial' => 'c',
+    'blockSpecial' => 'b',
+    'fifo' => 'f',
+    'link' => 'l',
+    'socket' => 's',
+    'unknown' => '?'
+  }
+  file_type_char = filetypes[stat.ftype]
+
+  permission_lookup_table = {
+    '0' => '---', '1' => '--x', '2' => '-w-', '3' => '-wx',
+    '4' => 'r--', '5' => 'r-x', '6' => 'rw-', '7' => 'rwx'
+  }
+  permissions = format('%o', stat.mode)[-3..].chars.map { |c| permission_lookup_table[c] }.join
+
+  _, stdout, stderr = Open3.capture3('xattr', full_path)
+  extended_attribute = stderr.success? && stdout.empty? ? '@' : ''
+
+  "#{file_type_char}#{permissions}#{extended_attribute}"
+end
+
+def count_hardlinks(full_path)
+  File.lstat(full_path).nlink
+end
+
+def get_owner_name(full_path)
+  stat = File.lstat(full_path)
+
+  Etc.getpwuid(stat.uid).name
+end
+
+def get_group_name(full_path)
+  stat = File.lstat(full_path)
+
+  Etc.getgrgid(stat.gid).name
+end
+
+def get_file_size(full_path)
+  File.lstat(full_path).size
+end
+
+def get_modified_time(full_path)
+  mtime = File.lstat(full_path).mtime
+
+  if mtime.year == Time.now.year
+    mtime.strftime('%-m %e %H:%M')
+  else
+    mtime.strftime('%-m %e  %Y')
+  end
+end
+
+def resolve_pathname(full_path)
+  basename = File.basename(full_path)
+
+  if File.symlink?(full_path)
+    "#{basename} -> #{File.readlink(full_path)}"
+  else
+    basename
+  end
+end
+
+def get_file_info(full_path)
+  {
+    mode: get_filetype_and_permissions(full_path),
+    nlink: count_hardlinks(full_path),
+    owner: get_owner_name(full_path),
+    group: get_group_name(full_path),
+    size: get_file_size(full_path),
+    modified_time: get_modified_time(full_path),
+    pathname: resolve_pathname(full_path)
+  }
+end
+
+def format_entries_for_long_listing(file_infos)
+  column_widths = {
+    nlink: file_infos.map { |info| info[:nlink].to_s.length }.max,
+    owner: file_infos.map { |info| info[:owner].length }.max,
+    group: file_infos.map { |info| info[:group].length }.max,
+    size: file_infos.map { |info| info[:size].to_s.length }.max,
+    date: file_infos.map { |info| info[:modified_time].length }.max
   }
 
-  parser = OptionParser.new do |opt|
-    opt.on('-a', 'Include directory entries whose names begin with a dot (`.`)') { params[:all] = true }
-    opt.on('-r', 'Reverse the order of the sort') { params[:reverse] = true }
-  end
+  format_string = "%s %#{column_widths[:nlink]}d %-#{column_widths[:owner]}s %-#{column_widths[:group]}s %#{column_widths[:size]}d %#{column_widths[:date]}s %s"
 
-  parser.parse!(ARGV)
+  file_infos.map do |info|
+    format(format_string,
+           info[:mode],
+           info[:nlink],
+           info[:owner],
+           info[:group],
+           info[:size],
+           info[:modified_time],
+           info[:pathname])
+  end.join("\n")
+end
+
+def calculate_total_blocks(entries, path)
+  entries.map { |entry| File.stat(File.join(path, entry)).blocks }.sum
+end
+
+def aggregate_file_info(entries, path)
+  entries.map { |entry| get_file_info(File.join(path, entry)) }
+end
+
+def build_long_format_output(entries, path)
+  total_blocks = calculate_total_blocks(entries, path)
+
+  file_infos = aggregate_file_info(entries, path)
+  formatted_entries = format_entries_for_long_listing(file_infos)
+
+  "total #{total_blocks}\n#{formatted_entries}"
+end
+
+def main
+  params = parse_options(ARGV)
 
   path = ARGV[0] || '.'
 
   abort "ls.rb: No such file or directory: #{path}" unless File.exist?(path)
 
   entries = fetch_entries(path, params[:all], params[:reverse])
-  entries_grid = to_grid(entries)
 
-  ls_result = stringify_entries_grid(entries_grid)
+  output = params[:long_format] ? build_long_format_output(entries, path) : build_default_format_output(entries)
 
-  puts ls_result unless ls_result.empty?
+  puts output unless output.empty?
 end
 
 main
