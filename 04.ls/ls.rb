@@ -63,7 +63,7 @@ def build_default_format_output(entries)
   format_entries_grid(entries_grid)
 end
 
-def get_filetype_and_permissions(full_path)
+def filetype_and_permissions(full_path)
   stat = File.lstat(full_path)
 
   filetypes = {
@@ -94,23 +94,23 @@ def count_hardlinks(full_path)
   File.lstat(full_path).nlink
 end
 
-def get_owner_name(full_path)
+def owner_name(full_path)
   stat = File.lstat(full_path)
 
   Etc.getpwuid(stat.uid).name
 end
 
-def get_group_name(full_path)
+def group_name(full_path)
   stat = File.lstat(full_path)
 
   Etc.getgrgid(stat.gid).name
 end
 
-def get_file_size(full_path)
+def calculate_file_size(full_path)
   File.lstat(full_path).size
 end
 
-def get_modified_time(full_path)
+def modified_time(full_path)
   mtime = File.lstat(full_path).mtime
 
   if mtime.year == Time.now.year
@@ -132,12 +132,12 @@ end
 
 def get_file_info(full_path)
   {
-    mode: get_filetype_and_permissions(full_path),
+    mode: filetype_and_permissions(full_path),
     nlink: count_hardlinks(full_path),
-    owner: get_owner_name(full_path),
-    group: get_group_name(full_path),
-    size: get_file_size(full_path),
-    modified_time: get_modified_time(full_path),
+    owner: owner_name(full_path),
+    group: group_name(full_path),
+    size: calculate_file_size(full_path),
+    modified_time: modified_time(full_path),
     pathname: resolve_pathname(full_path)
   }
 end
