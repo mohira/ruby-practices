@@ -80,9 +80,7 @@ def extended_attribute(full_path)
   end
 end
 
-def filetype_and_permissions(full_path)
-  stat = File.lstat(full_path)
-
+def filetype_and_permissions(stat, full_path)
   filetypes = {
     'file' => '-',
     'directory' => 'd',
@@ -104,28 +102,24 @@ def filetype_and_permissions(full_path)
   "#{file_type_char}#{permissions}#{extended_attribute(full_path)}"
 end
 
-def count_hardlinks(full_path)
-  File.lstat(full_path).nlink
+def count_hardlinks(stat)
+  stat.nlink
 end
 
-def owner_name(full_path)
-  stat = File.lstat(full_path)
-
+def owner_name(stat)
   Etc.getpwuid(stat.uid).name
 end
 
-def group_name(full_path)
-  stat = File.lstat(full_path)
-
+def group_name(stat)
   Etc.getgrgid(stat.gid).name
 end
 
-def calculate_file_size(full_path)
-  File.lstat(full_path).size
+def calculate_file_size(stat)
+  stat.size
 end
 
-def modified_time(full_path)
-  mtime = File.lstat(full_path).mtime
+def modified_time(stat)
+  mtime = stat.mtime
 
   if mtime.year == Time.now.year
     mtime.strftime('%-m %e %H:%M')
@@ -145,13 +139,15 @@ def resolve_pathname(full_path)
 end
 
 def get_file_info(full_path)
+  stat = File.lstat(full_path)
+
   {
-    mode: filetype_and_permissions(full_path),
-    nlink: count_hardlinks(full_path),
-    owner: owner_name(full_path),
-    group: group_name(full_path),
-    size: calculate_file_size(full_path),
-    modified_time: modified_time(full_path),
+    mode: filetype_and_permissions(stat, full_path),
+    nlink: count_hardlinks(stat),
+    owner: owner_name(stat),
+    group: group_name(stat),
+    size: calculate_file_size(stat),
+    modified_time: modified_time(stat),
     pathname: resolve_pathname(full_path)
   }
 end
