@@ -63,6 +63,23 @@ def build_default_format_output(entries)
   format_entries_grid(entries_grid)
 end
 
+def extended_attribute(full_path)
+  is_macos = RUBY_PLATFORM.match?(/darwin/i)
+  return '' unless is_macos
+
+  begin
+    stdout, _, stderr = Open3.capture3('xattr', full_path)
+
+    stderr.success? && !stdout.empty? ? '@' : ''
+  rescue Errno::ENOENT
+    abort 'Command not found: xattr'
+  rescue Errno::EACCES
+    abort 'Permission denied: xattr'
+  rescue StandardError => e
+    abort e.message
+  end
+end
+
 def filetype_and_permissions(full_path)
   stat = File.lstat(full_path)
 
@@ -84,10 +101,7 @@ def filetype_and_permissions(full_path)
   }
   permissions = format('%o', stat.mode)[-3..].chars.map { |c| permission_lookup_table[c] }.join
 
-  _, stdout, stderr = Open3.capture3('xattr', full_path)
-  extended_attribute = stderr.success? && stdout.empty? ? '@' : ''
-
-  "#{file_type_char}#{permissions}#{extended_attribute}"
+  "#{file_type_char}#{permissions}#{extended_attribute(full_path)}"
 end
 
 def count_hardlinks(full_path)
