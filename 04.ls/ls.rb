@@ -89,7 +89,7 @@ def extended_attribute(full_path)
   begin
     stdout, _, stderr = Open3.capture3('xattr', full_path)
 
-    stderr.success? && !stdout.empty? ? '@' : ''
+    stderr.success? && !stdout.empty? ? '@' : ' '
   rescue Errno::ENOENT
     abort 'Command not found: xattr'
   rescue Errno::EACCES
