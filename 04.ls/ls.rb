@@ -7,6 +7,22 @@ require 'optparse'
 
 MAX_NUMBER_OF_DISPLAY_COLUMNS = 3
 
+FILE_TYPES = {
+  'file' => '-',
+  'directory' => 'd',
+  'characterSpecial' => 'c',
+  'blockSpecial' => 'b',
+  'fifo' => 'f',
+  'link' => 'l',
+  'socket' => 's',
+  'unknown' => '?'
+}.freeze
+
+PERMISSION_LOOKUP_TABLE = {
+  '0' => '---', '1' => '--x', '2' => '-w-', '3' => '-wx',
+  '4' => 'r--', '5' => 'r-x', '6' => 'rw-', '7' => 'rwx'
+}.freeze
+
 def parse_options(argv)
   params = {
     all: false,
@@ -63,9 +79,12 @@ def build_default_format_output(entries)
   format_entries_grid(entries_grid)
 end
 
+def macos?
+  RUBY_PLATFORM.match?(/darwin/i)
+end
+
 def extended_attribute(full_path)
-  is_macos = RUBY_PLATFORM.match?(/darwin/i)
-  return '' unless is_macos
+  return '' unless macos?
 
   begin
     stdout, _, stderr = Open3.capture3('xattr', full_path)
@@ -81,23 +100,9 @@ def extended_attribute(full_path)
 end
 
 def filetype_and_permissions(stat, full_path)
-  filetypes = {
-    'file' => '-',
-    'directory' => 'd',
-    'characterSpecial' => 'c',
-    'blockSpecial' => 'b',
-    'fifo' => 'f',
-    'link' => 'l',
-    'socket' => 's',
-    'unknown' => '?'
-  }
-  file_type_char = filetypes[stat.ftype]
+  file_type_char = FILE_TYPES[stat.ftype]
 
-  permission_lookup_table = {
-    '0' => '---', '1' => '--x', '2' => '-w-', '3' => '-wx',
-    '4' => 'r--', '5' => 'r-x', '6' => 'rw-', '7' => 'rwx'
-  }
-  permissions = format('%o', stat.mode)[-3..].chars.map { |c| permission_lookup_table[c] }.join
+  permissions = format('%o', stat.mode)[-3..].chars.map { |c| PERMISSION_LOOKUP_TABLE[c] }.join
 
   "#{file_type_char}#{permissions}#{extended_attribute(full_path)}"
 end
