@@ -1,0 +1,15 @@
+{
+  "name": "John Doe",
+  "age": 30,
+  "city": "New York",
+  "hobbies": [
+    "reading",
+    "swimming",
+    "coding"
+  ],
+  "details": {
+    "height": 180,
+    "weight": 75
+  },
+  "quote": "Hello, World! Welcome to JSON."
+}
