@@ -6,6 +6,8 @@ require 'optparse'
 EXIT_CODE_OK = 0
 EXIT_CODE_ERROR = 1
 
+STAT_FIELDS = %i[lines words bytes].freeze
+
 def count_words(text)
   text.split.count
 end
@@ -59,7 +61,7 @@ def format_output(file_info, options)
   # 桁数がそれより大きくなる場合の表示は考慮しない
   fields = []
 
-  %i[lines words bytes].each do |key|
+  STAT_FIELDS.each do |key|
     fields << file_info[key].to_s.rjust(8) if options[key]
   end
   fields << " #{file_info[:pathname]}"
@@ -71,7 +73,7 @@ def calculate_total(file_infos)
   total_info = { pathname: 'total', lines: 0, words: 0, bytes: 0 }
 
   file_infos.reject { |info| info[:error] }.each do |info|
-    %i[lines words bytes].each do |key|
+    STAT_FIELDS.each do |key|
       total_info[key] += info[key]
     end
   end
