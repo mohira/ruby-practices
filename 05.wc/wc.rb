@@ -6,10 +6,9 @@ require 'optparse'
 EXIT_CODE_OK = 0
 EXIT_CODE_ERROR = 1
 
-WHITE_SPACE_REG_EXP = /[ \t\r\n\f\v]/
 
 def count_words(text)
-  text.split(WHITE_SPACE_REG_EXP).count { |s| !s.empty? }
+  text.split.count
 end
 
 def count_lines(text)
